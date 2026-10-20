@@ -14,8 +14,8 @@
     h1 { font-size:1.8rem; line-height:1.5; margin:.5em 0; }
     rt { font-size:.55em; }
     .note { font-size:.95rem; opacity:.85; }
-    .card-img { display:block; width:100%; max-width:360px; height:auto; margin:12px auto; border-radius:16px; }
-    .btn { display:block; max-width:360px; margin:12px auto; padding:14px 8px; border-radius:999px;
+    .card-img { display:block; width:100%; max-width:420px; height:auto; margin:12px auto; border-radius:16px; }
+    .btn { display:block; max-width:420px; margin:12px auto; padding:14px 8px; border-radius:999px;
            background:var(--accent); color:#fff; font:inherit; font-weight:700; text-decoration:none; }
     .btn:hover { background:#0f5757; }
     [hidden] { display:none !important; }
@@ -24,75 +24,265 @@
 <body>
 <main>
   <h1><ruby>結果<rt>けっか</rt></ruby>のカード</h1>
-  <img id="card-img" class="card-img" alt="結果の画像カード" width="800" height="1000" hidden>
-  <canvas id="card" width="800" height="1000" hidden></canvas>
   <p id="msg" class="note">つくっているよ…</p>
   <a id="save" class="btn" download="animal-card.png" hidden><ruby>画像<rt>がぞう</rt></ruby>を<ruby>保存<rt>ほぞん</rt></ruby></a>
+  <img id="card-img" class="card-img" alt="結果の画像カード" hidden>
   <p id="tip" class="note" hidden>うまく<ruby>保存<rt>ほぞん</rt></ruby>できないときは、<ruby>画像<rt>がぞう</rt></ruby>を<ruby>長<rt>なが</rt></ruby>おししてね。</p>
+  <canvas id="card" hidden></canvas>
 </main>
 <script>
 (function () {
-  // 動物のデータ(番号 0〜31)。画像カードに必要なものだけ。
-  var TYPES = [{"code": "LLLLL", "name": "ナマケモノ", "emoji": "🦥", "summary": "なにごとも我が道をゆく、省エネタイプ", "hue": 0}, {"code": "LLLLH", "name": "カタツムリ", "emoji": "🐌", "summary": "自分のからを大切にする、繊細さん", "hue": 137}, {"code": "LLLHL", "name": "パンダ", "emoji": "🐼", "summary": "マイペースで、みんなに愛されるタイプ", "hue": 274}, {"code": "LLLHH", "name": "リス", "emoji": "🐿️", "summary": "おとなしくて、やさしい心配性", "hue": 51}, {"code": "LLHLL", "name": "サル", "emoji": "🐒", "summary": "ノリがよくて、陽気なムードメーカー", "hue": 188}, {"code": "LLHLH", "name": "スズメ", "emoji": "🐦", "summary": "にぎやかで、気分が変わりやすい", "hue": 325}, {"code": "LLHHL", "name": "カピバラ", "emoji": "🐹", "summary": "のんびり明るくて、みんなのいやし役", "hue": 102}, {"code": "LLHHH", "name": "ヒツジ", "emoji": "🐑", "summary": "なかまといると安心する、やさしいさびしがり屋", "hue": 239}, {"code": "LHLLL", "name": "ビーバー", "emoji": "🦫", "summary": "もくもくと仕事をこなす、職人タイプ", "hue": 16}, {"code": "LHLLH", "name": "アリ", "emoji": "🐜", "summary": "きちょうめんで、じゅんびを大切にする", "hue": 153}, {"code": "LHLHL", "name": "ゾウ", "emoji": "🐘", "summary": "どっしりおだやかな、やさしい守り手", "hue": 290}, {"code": "LHLHH", "name": "カメ", "emoji": "🐢", "summary": "コツコツ進む、しんちょうな気くばり屋", "hue": 67}, {"code": "LHHLL", "name": "ライオン", "emoji": "🦁", "summary": "しっかり者で、堂々としたリーダー", "hue": 204}, {"code": "LHHLH", "name": "ドーベルマン", "emoji": "🐕", "summary": "責任感が強くて、いつも気をはっている", "hue": 341}, {"code": "LHHHL", "name": "イヌ", "emoji": "🐶", "summary": "まじめで世話好き、みんなにしたわれる", "hue": 118}, {"code": "LHHHH", "name": "ペンギン", "emoji": "🐧", "summary": "なかまと力を合わせる、まじめながんばり屋", "hue": 255}, {"code": "HLLLL", "name": "カラス", "emoji": "🐦‍⬛", "summary": "好奇心いっぱいで、クールなひとりが好き", "hue": 32}, {"code": "HLLLH", "name": "コウモリ", "emoji": "🦇", "summary": "自分だけの世界をもつ、夜型の感性派", "hue": 169}, {"code": "HLLHL", "name": "ネコ", "emoji": "🐱", "summary": "自由気ままだけど、じつはやさしい", "hue": 306}, {"code": "HLLHH", "name": "クラゲ", "emoji": "🪼", "summary": "ふわふわただよう、感性ゆたかなタイプ", "hue": 83}, {"code": "HLHLL", "name": "チーター", "emoji": "🐆", "summary": "思いたったらすぐ動く、マイペースなスピードスター", "hue": 220}, {"code": "HLHLH", "name": "クジャク", "emoji": "🦚", "summary": "目立つのが好きで、美しいものが大好き", "hue": 357}, {"code": "HLHHL", "name": "オウム", "emoji": "🦜", "summary": "自由でおしゃべり好きな人気者", "hue": 134}, {"code": "HLHHH", "name": "ラッコ", "emoji": "🦦", "summary": "なかま思いで、気持ちをゆたかに感じる", "hue": 271}, {"code": "HHLLL", "name": "キツネ", "emoji": "🦊", "summary": "冷静で、かしこい作戦の名人", "hue": 48}, {"code": "HHLLH", "name": "ハリネズミ", "emoji": "🦔", "summary": "こだわりが強くて、心をまもるのも上手", "hue": 185}, {"code": "HHLHL", "name": "フクロウ", "emoji": "🦉", "summary": "物知りで、おだやかな相談あいて", "hue": 322}, {"code": "HHLHH", "name": "ウサギ", "emoji": "🐰", "summary": "しんちょうで、やさしい気くばり上手", "hue": 99}, {"code": "HHHLL", "name": "ワシ", "emoji": "🦅", "summary": "目標に向かってまっすぐ進む、たのもしいリーダー", "hue": 236}, {"code": "HHHLH", "name": "オオカミ", "emoji": "🐺", "summary": "大きな夢をめざして進む、感じやすい心の持ち主", "hue": 13}, {"code": "HHHHL", "name": "イルカ", "emoji": "🐬", "summary": "好奇心も、計画も、人づきあいも上手なバランス名人", "hue": 150}, {"code": "HHHHH", "name": "ミツバチ", "emoji": "🐝", "summary": "なんでも全力でがんばる、心やさしい努力家", "hue": 287}];
-
-  var no = parseInt(new URLSearchParams(location.search).get('no'), 10);
-  var msg = document.getElementById('msg');
-  if (!(no >= 0 && no < TYPES.length)) { msg.textContent = 'カードが見つからないよ。もういちど QR を読みとってね。'; return; }
-
-  var d = TYPES[no], h = d.hue;
-  var c = document.getElementById('card'), ctx = c.getContext('2d');
-  var W = c.width, H = c.height;
-  var EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-  var TEXT = '"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif';
-
-  function wrap(text, x, y, maxW, lineH) {
-    var line = '';
-    Array.from(text).forEach(function (ch) {
-      if (line && ctx.measureText(line + ch).width > maxW) { ctx.fillText(line, x, y); line = ch; y += lineH; }
-      else { line += ch; }
+  var D = {"axes": [{"label": "開放性(かいほうせい)", "hs": "新(あたら)しいことを思(おも)いつく力(ちから)がある", "hw": "いろいろ気(き)になって、あきてしまう日(ひ)もあるかも", "ls": "あわてず、じっくり進(すす)められる", "lw": "新(あたら)しいことは、ちょっとドキドキするかも"}, {"label": "誠実性(せいじつせい)", "hs": "計画(けいかく)を立(た)てて、しっかりやりとげられる", "hw": "がんばりすぎて、つかれてしまう日(ひ)もあるかも", "ls": "のんびりしていて、気(き)らくに動(うご)ける", "lw": "あとまわしにしてしまうことがあるかも"}, {"label": "外向性(がいこうせい)", "hs": "まわりを明(あか)るくする力(ちから)がある", "hw": "ひとりの時間(じかん)が少(すく)なくて、つかれる日(ひ)もあるかも", "ls": "落(お)ち着(つ)いて、じっくり考(かんが)えられる", "lw": "自分(じぶん)から声(こえ)をかけるのに、ちょっと勇気(ゆうき)がいるかも"}, {"label": "協調性(きょうちょうせい)", "hs": "人(ひと)の気持(きも)ちに気(き)づける", "hw": "ことわるのに、なやんでしまうことがあるかも", "ls": "自分(じぶん)の意見(いけん)をはっきり言(い)える", "lw": "つよい人(ひと)だと思(おも)われてしまうことがあるかも"}, {"label": "神経症傾向(しんけいしょうけいこう)", "hs": "細(こま)かいことに気(き)づいて、じゅんびができる", "hw": "心配(しんぱい)しすぎてしまうことがあるかも", "ls": "あわてず、どっしりかまえられる", "lw": "気(き)をぬいてしまうことがあるかも"}], "poles": [["安定(あんてい)", "創造(そうぞう)"], ["のんびり", "きちょうめん"], ["内向(ないこう)", "外向(がいこう)"], ["マイペース", "協調(きょうちょう)"], ["どっしり", "繊細(せんさい)"]], "types": [{"code": "LLLLL", "name": "ナマケモノ", "emoji": "🦥", "summary": "なにごとも我(わ)が道(みち)をゆく、省(しょう)エネタイプ", "school": "がんばりすぎない名人(めいじん)。のんびり力(りょく)は学校(がっこう)一(いち)だよ。", "fit": "帰宅部(きたくぶ)", "lucky": "まくら", "holiday": "なんにもしない! のんびり寝(ね)てすごす。", "job": "自分(じぶん)のペースで働(はたら)ける仕事(しごと)", "phrase": "「ゆっくりいこうよ〜」", "recharge": "ふとんにもぐって、たっぷり休(やす)む"}, {"code": "LLLLH", "name": "カタツムリ", "emoji": "🐌", "summary": "自分(じぶん)のからを大切(たいせつ)にする、繊細(せんさい)さん", "school": "ゆっくりていねいに、自分(じぶん)のペースを守(まも)るよ。", "fit": "園芸部(えんげいぶ)", "lucky": "雨(あめ)の日(ひ)のかさ", "holiday": "雨(あめ)の日(ひ)は、家(いえ)でゆっくり、好(す)きなことをするよ。", "job": "ガーデナー・ハンドメイド作家(さっか)", "phrase": "「ゆっくり、ゆっくり…」", "recharge": "安心(あんしん)できる自分(じぶん)の部屋(へや)で休(やす)む"}, {"code": "LLLHL", "name": "パンダ", "emoji": "🐼", "summary": "マイペースで、みんなに愛(あい)されるタイプ", "school": "マイペースなのに、なぜかみんなに愛(あい)されているよ。", "fit": "飼育委員(しいくいいん)", "lucky": "おやつ", "holiday": "ごろごろして、好(す)きなおやつを食(た)べる。", "job": "動物(どうぶつ)に関(かか)わる仕事(しごと)", "phrase": "「まあ、いっか」", "recharge": "好(す)きなおやつを食(た)べて、ゆっくり休(やす)む"}, {"code": "LLLHH", "name": "リス", "emoji": "🐿️", "summary": "おとなしくて、やさしい心配性(しんぱいしょう)", "school": "おとなしいけれど、心(こころ)の中(なか)はやさしさでいっぱいだよ。", "fit": "栽培係(さいばいがかり)", "lucky": "木(き)の実(み)のキーホルダー", "holiday": "おうちで静(しず)かに、好(す)きなことをこつこつ。", "job": "司書(ししょ)・データ入力(にゅうりょく)の仕事(しごと)", "phrase": "「えっと、あの…ありがとう」", "recharge": "安心(あんしん)できる人(ひと)のそばですごす"}, {"code": "LLHLL", "name": "サル", "emoji": "🐒", "summary": "ノリがよくて、陽気(ようき)なムードメーカー", "school": "ノリがよくて、教室(きょうしつ)のムードメーカーだよ。", "fit": "応援団(おうえんだん)", "lucky": "ハチマキ", "holiday": "友(とも)だちとカラオケやゲーム大会(たいかい)で大(おお)さわぎ。", "job": "芸人(げいにん)・イベントの司会(しかい)", "phrase": "「おもしろいこと、やっちゃおうよ!」", "recharge": "みんなとわいわい盛(も)り上(あ)がる"}, {"code": "LLHLH", "name": "スズメ", "emoji": "🐦", "summary": "にぎやかで、気分(きぶん)が変(か)わりやすい", "school": "にぎやかで、気分(きぶん)がころころ変(か)わるところもかわいいよ。", "fit": "文化祭(ぶんかさい)の呼(よ)び込(こ)み", "lucky": "ビー玉(だま)", "holiday": "その日(ひ)の気分(きぶん)で、行(い)き先(さき)を決(き)める。", "job": "受付(うけつけ)・旅行(りょこう)ガイド", "phrase": "「あっ、やっぱりこっちがいい!」", "recharge": "おしゃべりして、おいしいおやつを食(た)べる"}, {"code": "LLHHL", "name": "カピバラ", "emoji": "🐹", "summary": "のんびり明(あか)るくて、みんなのいやし役(やく)", "school": "のんびり明(あか)るくて、いっしょにいるとみんながほっこりするよ。", "fit": "レクリエーション係(がかり)", "lucky": "あったかいお茶(ちゃ)", "holiday": "温泉(おんせん)やカフェでのんびり。友(とも)だちも自然(しぜん)に集(あつ)まるよ。", "job": "接客(せっきゃく)・カフェの店員(てんいん)", "phrase": "「まあ、なんとかなるよ〜」", "recharge": "あったかいお風呂(ふろ)に、ゆっくりつかる"}, {"code": "LLHHH", "name": "ヒツジ", "emoji": "🐑", "summary": "なかまといると安心(あんしん)する、やさしいさびしがり屋(や)", "school": "なかよしのグループにいると安心(あんしん)。やさしい聞(き)き上手(じょうず)だよ。", "fit": "世話係(せわがかり)", "lucky": "ふわふわのクッション", "holiday": "仲間(なかま)と、ゆるくおしゃべりしたり、一緒(いっしょ)にごはんを食(た)べたり。", "job": "介護(かいご)・サービスの仕事(しごと)", "phrase": "「みんなといると、安心(あんしん)するなあ」", "recharge": "ふわふわの毛布(もうふ)に包(つつ)まれる"}, {"code": "LHLLL", "name": "ビーバー", "emoji": "🦫", "summary": "もくもくと仕事(しごと)をこなす、職人(しょくにん)タイプ", "school": "決(き)められた仕事(しごと)を、もくもくときれいに仕上(しあ)げるよ。", "fit": "工作(こうさく)の係(かかり)", "lucky": "ハサミ", "holiday": "工作(こうさく)や料理(りょうり)など、手(て)を動(うご)かすことに熱中(ねっちゅう)。", "job": "大工(だいく)・工場(こうじょう)の仕事(しごと)", "phrase": "「あと少(すこ)しで完成(かんせい)する」", "recharge": "もくもくと作業(さぎょう)して、できあがりを見(み)る"}, {"code": "LHLLH", "name": "アリ", "emoji": "🐜", "summary": "きちょうめんで、じゅんびを大切(たいせつ)にする", "school": "じゅんびをしっかりして、わすれ物(もの)はほとんどしないよ。", "fit": "会計係(かいけいがかり)", "lucky": "チェックリスト", "holiday": "スケジュールを確(たし)かめて、準備(じゅんび)を完璧(かんぺき)にする。", "job": "経理(けいり)・薬剤師(やくざいし)", "phrase": "「念(ねん)のため、もう一回(いっかい)かくにんしよう」", "recharge": "チェックリストを全部(ぜんぶ)終(お)わらせる"}, {"code": "LHLHL", "name": "ゾウ", "emoji": "🐘", "summary": "どっしりおだやかな、やさしい守(まも)り手(て)", "school": "どっしりかまえていて、そばにいるとほっとするよ。", "fit": "給食委員(きゅうしょくいいん)", "lucky": "あたたかい靴下(くつした)", "holiday": "家(いえ)でのんびり、ゆっくりごはんをつくる。", "job": "教師(きょうし)・農業(のうぎょう)", "phrase": "「まあまあ、落(お)ち着(つ)いて」", "recharge": "あたたかい場所(ばしょ)で、ゆっくりおしゃべり"}, {"code": "LHLHH", "name": "カメ", "emoji": "🐢", "summary": "コツコツ進(すす)む、しんちょうな気(き)くばり屋(や)", "school": "ゆっくりでもコツコツ。気(き)づかいも忘(わす)れないよ。", "fit": "美化委員(びかいいん)", "lucky": "お気(き)に入(い)りのふでばこ", "holiday": "決(き)まった散歩(さんぽ)コースを、のんびり歩(ある)く。", "job": "図書館(としょかん)・事務(じむ)の仕事(しごと)", "phrase": "「ゆっくりで、いいよね」", "recharge": "いつものお気(き)に入(い)りの場所(ばしょ)で休(やす)む"}, {"code": "LHHLL", "name": "ライオン", "emoji": "🦁", "summary": "しっかり者(もの)で、堂々(どうどう)としたリーダー", "school": "ぶれないしっかり者(もの)。みんなが安心(あんしん)してついていくよ。", "fit": "部活(ぶかつ)の部長(ぶちょう)", "lucky": "金色(きんいろ)のペン", "holiday": "計画(けいかく)どおりに、勉強(べんきょう)や運動(うんどう)をこなす。", "job": "管理職(かんりしょく)・経営者(けいえいしゃ)", "phrase": "「大丈夫(だいじょうぶ)、ついてきて」", "recharge": "目標(もくひょう)を達成(たっせい)して、おいしいものを食(た)べる"}, {"code": "LHHLH", "name": "ドーベルマン", "emoji": "🐕", "summary": "責任感(せきにんかん)が強(つよ)くて、いつも気(き)をはっている", "school": "責任感(せきにんかん)が強(つよ)くて、まかされたことは必(かなら)ずやりとげるよ。", "fit": "風紀委員(ふうきいいん)", "lucky": "手帳(てちょう)", "holiday": "身(み)のまわりを整(ととの)えて、来週(らいしゅう)の準備(じゅんび)をする。", "job": "警察官(けいさつかん)・セキュリティの仕事(しごと)", "phrase": "「ルールは守(まも)らないとね」", "recharge": "一日(いちにち)の終(お)わりに、ゆっくり休(やす)む"}, {"code": "LHHHL", "name": "イヌ", "emoji": "🐶", "summary": "まじめで世話(せわ)好(ず)き、みんなにしたわれる", "school": "世話好(せわず)きでまじめ。クラスの頼(たよ)れる存在(そんざい)だよ。", "fit": "クラス代表(だいひょう)", "lucky": "ボール", "holiday": "家族(かぞく)や友(とも)だちのために、出(で)かける計画(けいかく)を立(た)てる。", "job": "公務員(こうむいん)・学校(がっこう)の先生(せんせい)", "phrase": "「手伝(てつだ)うよ、まかせて」", "recharge": "みんなで集(あつ)まって、わいわい楽(たの)しむ"}, {"code": "LHHHH", "name": "ペンギン", "emoji": "🐧", "summary": "なかまと力(ちから)を合(あ)わせる、まじめながんばり屋(や)", "school": "みんなで力(ちから)を合(あ)わせる行事(ぎょうじ)が大好(だいす)きだよ。", "fit": "合唱部(がっしょうぶ)", "lucky": "おそろいのリストバンド", "holiday": "チームのイベントやボランティアに参加(さんか)する。", "job": "事務(じむ)・チームで動(うご)く仕事(しごと)", "phrase": "「みんなでがんばろう!」", "recharge": "なかまと協力(きょうりょく)して、なにかをやりとげる"}, {"code": "HLLLL", "name": "カラス", "emoji": "🐦‍⬛", "summary": "好奇心(こうきしん)いっぱいで、クールなひとりが好(す)き", "school": "気(き)になったことは、とことん調(しら)べる、ひとり探検家(たんけんか)だよ。", "fit": "科学部(かがくぶ)", "lucky": "虫(むし)めがね", "holiday": "気(き)になることを、一日中(いちにちじゅう)調(しら)べる。", "job": "研究者(けんきゅうしゃ)・記者(きしゃ)", "phrase": "「それって、どうしてだろう?」", "recharge": "ひとりで、好(す)きなことに夢中(むちゅう)になる"}, {"code": "HLLLH", "name": "コウモリ", "emoji": "🦇", "summary": "自分(じぶん)だけの世界(せかい)をもつ、夜型(よるがた)の感性派(かんせいは)", "school": "夜(よる)になるとアイデアがわいてくる、ひみつの発明家(はつめいか)だよ。", "fit": "パソコン部(ぶ)", "lucky": "ヘッドホン", "holiday": "夜(よる)ふかしして、作品(さくひん)づくりや発明(はつめい)に夢中(むちゅう)。", "job": "エンジニア・ゲームクリエイター", "phrase": "「あ、いいこと思(おも)いついた」", "recharge": "静(しず)かな夜(よる)に、好(す)きな音楽(おんがく)を聞(き)く"}, {"code": "HLLHL", "name": "ネコ", "emoji": "🐱", "summary": "自由(じゆう)気(き)ままだけど、じつはやさしい", "school": "ひとりの時間(じかん)も大切(たいせつ)。気(き)が向(む)いたら、とびきりやさしいよ。", "fit": "写真部(しゃしんぶ)", "lucky": "やわらかい毛布(もうふ)", "holiday": "お昼寝(ひるね)したり、気(き)の向(む)くままに散歩(さんぽ)したり。", "job": "写真家(しゃしんか)・フリーランスの仕事(しごと)", "phrase": "「今日(きょう)は、気分(きぶん)じゃないかな」", "recharge": "ひとりでのんびり、ふかふかの場所(ばしょ)で休(やす)む"}, {"code": "HLLHH", "name": "クラゲ", "emoji": "🪼", "summary": "ふわふわただよう、感性(かんせい)ゆたかなタイプ", "school": "ぼんやり空(そら)を見(み)て、ふしぎなことを考(かんが)えているよ。", "fit": "文芸部(ぶんげいぶ)", "lucky": "水色(みずいろ)のノート", "holiday": "ぼーっと空(そら)を見(み)たり、音楽(おんがく)を聞(き)いたり。", "job": "作家(さっか)・イラストレーター", "phrase": "「なんとなく、そんな気(き)がする」", "recharge": "海(うみ)や川(かわ)など、水(みず)のそばに行(い)く"}, {"code": "HLHLL", "name": "チーター", "emoji": "🐆", "summary": "思(おも)いたったらすぐ動(うご)く、マイペースなスピードスター", "school": "ひらめいたらすぐ動(うご)く! 行動力(こうどうりょく)はクラスで一番(いちばん)かも。", "fit": "体育祭(たいいくさい)の係(かかり)", "lucky": "運動(うんどう)ぐつ", "holiday": "思(おも)いつきで、旅行(りょこう)やスポーツに出(で)かける。", "job": "営業(えいぎょう)・イベントの仕事(しごと)", "phrase": "「とりあえず、やってみよう!」", "recharge": "走(はし)る、泳(およ)ぐ、思(おも)いきり体(からだ)を動(うご)かす"}, {"code": "HLHLH", "name": "クジャク", "emoji": "🦚", "summary": "目立(めだ)つのが好(す)きで、美(うつく)しいものが大好(だいす)き", "school": "おしゃれやデザインにこだわって、目立(めだ)つのも大好(だいす)きだよ。", "fit": "ステージ発表(はっぴょう)", "lucky": "キラキラのシール", "holiday": "おしゃれをして出(で)かけたり、写真(しゃしん)をとったり。", "job": "モデル・美容師(びようし)・俳優(はいゆう)", "phrase": "「見(み)て見(み)て、かわいいでしょ?」", "recharge": "ほめてもらう。新(あたら)しい服(ふく)を買(か)う"}, {"code": "HLHHL", "name": "オウム", "emoji": "🦜", "summary": "自由(じゆう)でおしゃべり好(す)きな人気者(にんきもの)", "school": "おしゃべり好(す)きで、いつのまにかみんなの輪(わ)の中心(ちゅうしん)にいるよ。", "fit": "放送委員(ほうそういいん)", "lucky": "イヤホン", "holiday": "友(とも)だちとおしゃべり。一日中(いちにちじゅう)話(はな)していられるよ。", "job": "アナウンサー・販売(はんばい)の仕事(しごと)", "phrase": "「ねえねえ、聞(き)いて聞(き)いて!」", "recharge": "大好(だいす)きな人(ひと)と、たくさん話(はな)す"}, {"code": "HLHHH", "name": "ラッコ", "emoji": "🦦", "summary": "なかま思(おも)いで、気持(きも)ちをゆたかに感(かん)じる", "school": "なかよしの友(とも)だちと、ずっといっしょにいたいタイプだよ。", "fit": "ダンス部(ぶ)", "lucky": "おそろいの小物(こもの)", "holiday": "なかよしの人(ひと)と、おそろいのものを買(か)いに行(い)く。", "job": "保育士(ほいくし)・接客(せっきゃく)の仕事(しごと)", "phrase": "「いっしょに行(い)こうよ」", "recharge": "仲(なか)のいい友(とも)だちと、ごはんを食(た)べる"}, {"code": "HHLLL", "name": "キツネ", "emoji": "🦊", "summary": "冷静(れいせい)で、かしこい作戦(さくせん)の名人(めいじん)", "school": "ゲームもテストも、作戦(さくせん)を立(た)てるのが得意(とくい)だよ。", "fit": "クイズ大会(たいかい)の司会(しかい)", "lucky": "ふせん", "holiday": "ゲームやパズルで、頭(あたま)の中(なか)で作戦(さくせん)を立(た)てる。", "job": "プログラマー・分析(ぶんせき)の仕事(しごと)", "phrase": "「それ、こうしたらうまくいくよ」", "recharge": "ひとりで集中(しゅうちゅう)できる時間(じかん)"}, {"code": "HHLLH", "name": "ハリネズミ", "emoji": "🦔", "summary": "こだわりが強(つよ)くて、心(こころ)をまもるのも上手(じょうず)", "school": "こだわりのお気(き)に入(い)りがあって、自分(じぶん)の世界(せかい)を大切(たいせつ)にするよ。", "fit": "美術部(びじゅつぶ)", "lucky": "お気(き)に入(い)りのペン", "holiday": "好(す)きなもののコレクションを、ていねいに整理(せいり)する。", "job": "デザイナー・職人(しょくにん)", "phrase": "「ここだけは、ゆずれない!」", "recharge": "お気(き)に入(い)りの場所(ばしょ)で、ひとり静(しず)かにすごす"}, {"code": "HHLHL", "name": "フクロウ", "emoji": "🦉", "summary": "物知(ものし)りで、おだやかな相談(そうだん)あいて", "school": "休(やす)み時間(じかん)は、本(ほん)を読(よ)んだり、友(とも)だちの相談(そうだん)にのったり。", "fit": "図書委員(としょいいん)", "lucky": "しおり", "holiday": "図書館(としょかん)や本屋(ほんや)で、のんびり本(ほん)を選(えら)ぶ。", "job": "先生(せんせい)・カウンセラー・研究者(けんきゅうしゃ)", "phrase": "「ちょっと調(しら)べてみるね」", "recharge": "お気(き)に入(い)りの本(ほん)と、あたたかいお茶(ちゃ)"}, {"code": "HHLHH", "name": "ウサギ", "emoji": "🐰", "summary": "しんちょうで、やさしい気(き)くばり上手(じょうず)", "school": "まわりをよく見(み)て、こまっている人(ひと)にすぐ気(き)づくよ。", "fit": "保健委員(ほけんいいん)", "lucky": "ハンカチ", "holiday": "家族(かぞく)や友(とも)だちのことを考(かんが)えて、プレゼントを選(えら)ぶ。", "job": "介護(かいご)・医療(いりょう)の仕事(しごと)", "phrase": "「大丈夫(だいじょうぶ)? 無理(むり)しないでね」", "recharge": "おだやかな音楽(おんがく)と、ゆっくりした時間(じかん)"}, {"code": "HHHLL", "name": "ワシ", "emoji": "🦅", "summary": "目標(もくひょう)に向(む)かってまっすぐ進(すす)む、たのもしいリーダー", "school": "やると決(き)めたら、ひとりでもまっすぐ進(すす)むよ。", "fit": "生徒会(せいとかい)", "lucky": "ストップウォッチ", "holiday": "目標(もくひょう)のために、ひとりで特訓(とっくん)や勉強(べんきょう)。", "job": "社長(しゃちょう)・パイロット", "phrase": "「やるなら、一番(いちばん)をめざそう」", "recharge": "体(からだ)を思(おも)いきり動(うご)かす"}, {"code": "HHHLH", "name": "オオカミ", "emoji": "🐺", "summary": "大(おお)きな夢(ゆめ)をめざして進(すす)む、感(かん)じやすい心(こころ)の持(も)ち主(ぬし)", "school": "目標(もくひょう)に向(む)かって、見(み)えないところでがんばっているよ。", "fit": "部活(ぶかつ)のキャプテン", "lucky": "お守(まも)り", "holiday": "ひみつの特訓(とっくん)をしたり、静(しず)かに作戦(さくせん)を練(ね)ったり。", "job": "スポーツ選手(せんしゅ)・営業(えいぎょう)の仕事(しごと)", "phrase": "「ぜったい、あきらめない」", "recharge": "信頼(しんらい)できる人(ひと)に、話(はなし)を聞(き)いてもらう"}, {"code": "HHHHL", "name": "イルカ", "emoji": "🐬", "summary": "好奇心(こうきしん)も、計画(けいかく)も、人(ひと)づきあいも上手(じょうず)なバランス名人(めいじん)", "school": "みんなの話(はなし)をよく聞(き)いて、まとめ役(やく)になることが多(おお)いよ。", "fit": "文化祭実行委員(ぶんかさいじっこういいん)", "lucky": "ホワイトボード", "holiday": "友(とも)だちと出(で)かけたり、新(あたら)しいお店(みせ)をさがしたり。", "job": "先生(せんせい)・企画(きかく)の仕事(しごと)", "phrase": "「みんなでやったら、きっと楽(たの)しいよ!」", "recharge": "みんなで笑(わら)って、おいしいものを食(た)べる"}, {"code": "HHHHH", "name": "ミツバチ", "emoji": "🐝", "summary": "なんでも全力(ぜんりょく)でがんばる、心(こころ)やさしい努力家(どりょくか)", "school": "どんな係(かかり)も、ていねいに、さいごまでやりとげるよ。", "fit": "学級委員(がっきゅういいん)", "lucky": "あたたかい飲(の)み物(もの)", "holiday": "予定(よてい)をぎっしり入(い)れて、一日(いちにち)ずっとフル回転(かいてん)。", "job": "チームのリーダー・看護師(かんごし)", "phrase": "「まかせて! ぜんぶやっておくね」", "recharge": "ぐっすりねむる。あたたかいおふろに入(はい)る"}], "compat": [{"label": "◎ 気(き)が合(あ)う", "reason": "ちがうのは「人(ひと)とのきょり感(かん)」だけ。いっしょにいて、ラクな相手(あいて)だよ。", "flip": 4}, {"label": "◎ 気(き)が合(あ)う", "reason": "ちがうのは「新(あたら)しいことへのワクワク」だけ。話(はな)していて、楽(たの)しいよ。", "flip": 16}, {"label": "△ ちがいがおもしろい", "reason": "ぜんぶ反対(はんたい)のタイプ。さいしょはびっくり。でも、ちがいを楽(たの)しめると、いちばん新(あたら)しい発見(はっけん)があるよ。", "flip": 31}]};
+  // ---- 診断(Diagnosis.java の写し) ----
+  var CENTER = 12, AMBIGUOUS_RANGE = 2;
+  function diagnose(scores, D) {
+    var n = 5, high = [], amb = [], ambCount = 0, a;
+    for (a = 0; a < n; a++) {
+      high[a] = scores[a] > CENTER;
+      amb[a] = Math.abs(scores[a] - CENTER) <= AMBIGUOUS_RANGE;
+      if (amb[a]) ambCount++;
+    }
+    var main = high.reduce(function (acc, h) { return acc * 2 + (h ? 1 : 0); }, 0);
+    var target = -1;
+    for (a = 0; a < n; a++) {
+      if (!amb[a]) continue;
+      if (target === -1 || Math.abs(scores[a] - CENTER) < Math.abs(scores[target] - CENTER)) target = a;
+    }
+    var sub = target < 0 ? -1 : (main ^ (1 << (n - 1 - target)));
+    var order = [0, 1, 2, 3, 4].sort(function (x, y) {
+      return Math.abs(scores[y] - CENTER) - Math.abs(scores[x] - CENTER);
     });
-    ctx.fillText(line, x, y);
+    return {
+      main: main, sub: sub, balanced: ambCount === n, high: high,
+      strengths: order.slice(0, 3).map(function (i) { return high[i] ? D.axes[i].hs : D.axes[i].ls; }),
+      weaknesses: order.slice(0, 2).map(function (i) { return high[i] ? D.axes[i].hw : D.axes[i].lw; })
+    };
   }
 
-  ctx.fillStyle = 'hsl(' + h + ',85%,90%)';
-  ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  if (ctx.roundRect) { ctx.roundRect(40, 40, W - 80, H - 80, 40); } else { ctx.rect(40, 40, W - 80, H - 80); }
-  ctx.fill();
 
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#1d3638';
-  ctx.font = '36px ' + TEXT;
-  ctx.fillText('あなたは', W / 2, 130);
+  // ---- 受け取る点数(?s=10けた。軸ごとに2けた、4〜20) ----
+  var msg = document.getElementById('msg');
+  var q = new URLSearchParams(location.search).get('s') || '';
+  var scores = null;
+  if (/^\d{10}$/.test(q)) {
+    scores = [0, 1, 2, 3, 4].map(function (i) { return parseInt(q.substr(i * 2, 2), 10); });
+    if (scores.some(function (v) { return v < 4 || v > 20; })) scores = null;
+  }
+  if (!scores) { msg.textContent = 'カードが見つからないよ。もういちど QR を読みとってね。'; return; }
 
-  ctx.fillStyle = 'hsl(' + h + ',85%,90%)';
-  ctx.strokeStyle = 'hsl(' + h + ',60%,48%)';
-  ctx.lineWidth = 12;
-  ctx.beginPath(); ctx.arc(W / 2, 330, 150, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#000';
-  ctx.font = '190px ' + EMOJI;
-  ctx.fillText(d.emoji, W / 2, 340);
+  var R = diagnose(scores, D);
+  var type = D.types[R.main];
+  var hue = (R.main * 137) % 360;
 
-  ctx.fillStyle = 'hsl(' + h + ',55%,28%)';
-  ctx.font = 'bold 92px ' + TEXT;
-  ctx.fillText(d.name, W / 2, 590);
-  ctx.fillStyle = '#1d3638';
-  ctx.globalAlpha = .6;
-  ctx.font = '28px ' + TEXT;
-  ctx.fillText(d.code, W / 2, 660);
-  ctx.globalAlpha = 1;
+  // ---- 描くための道具 ----
+  var TEXT = '"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif';
+  var EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  var INK = '#1d3638', DEEP = 'hsl(' + hue + ',55%,28%)', MID = 'hsl(' + hue + ',60%,48%)';
+  var W = 900, PAD = 36, INNER = W - PAD * 2, SP = 28, GAP = 24;
 
-  ctx.font = '40px ' + TEXT;
-  wrap(d.summary, W / 2, 740, 620, 62);
+  // "漢字(よみ)" を、漢字とふりがなの組に分ける
+  function tokenize(text) {
+    var out = [], re = /([一-鿿々]+)\(([ぁ-んァ-ヶー]+)\)/g, last = 0, m;
+    function plain(t) { Array.from(t).forEach(function (c) { out.push({ b: c }); }); }
+    while ((m = re.exec(text))) {
+      plain(text.slice(last, m.index));
+      out.push({ b: m[1], r: m[2] });
+      last = re.lastIndex;
+    }
+    plain(text.slice(last));
+    return out;
+  }
+  function font(fs, bold) { return (bold ? 'bold ' : '') + fs + 'px ' + TEXT; }
 
-  ctx.globalAlpha = .7;
-  ctx.font = '28px ' + TEXT;
-  ctx.fillText('どうぶつ性格チェック', W / 2, 875);
-  ctx.font = '24px ' + TEXT;
-  ctx.fillText('AIがつくった、たのしむためのチェックだよ', W / 2, 920);
-  ctx.globalAlpha = 1;
+  // 幅に合わせて行に分ける(ふりがなの組は途中で切らない)
+  function layout(ctx, text, fs, maxW, bold) {
+    ctx.font = font(fs, bold);
+    var lines = [], cur = [], w = 0;
+    tokenize(text).forEach(function (t) {
+      t.w = ctx.measureText(t.b).width;
+      if (cur.length && w + t.w > maxW && !/^[、。」』)!?!?,.]/.test(t.b)) {
+        lines.push({ toks: cur, w: w }); cur = []; w = 0;
+      }
+      cur.push(t); w += t.w;
+    });
+    lines.push({ toks: cur, w: w });
+    return lines;
+  }
+  function drawLines(ctx, lines, x, y, fs, align, boxW, color, bold) {
+    var lh = fs * 2.0;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = color;
+    lines.forEach(function (ln, i) {
+      var top = y + i * lh;
+      var cx = align === 'center' ? x + (boxW - ln.w) / 2 : align === 'right' ? x + boxW - ln.w : x;
+      ln.toks.forEach(function (t) {
+        ctx.font = font(fs, bold);
+        ctx.fillText(t.b, cx, top + fs * 1.5);
+        if (t.r) {
+          ctx.font = font(Math.round(fs * 0.5), bold);
+          var rw = ctx.measureText(t.r).width;
+          ctx.fillText(t.r, cx + (t.w - rw) / 2, top + fs * 0.47);
+        }
+        cx += t.w;
+      });
+    });
+  }
+  function roundRect(ctx, x, y, w, h, r, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // ---- カード全体を描く。dry=true のときは、高さを測るだけ ----
+  function render(ctx, dry, totalH) {
+    var y = 0;
+    function text(measure, x, yy, w, fs, t, o) {
+      o = o || {};
+      var ls = layout(ctx, t, fs, w, o.bold);
+      if (!measure && !dry) drawLines(ctx, ls, x, yy, fs, o.align || 'left', w, o.color || INK, o.bold);
+      return ls.length * fs * 2.0;
+    }
+    function section(color, fn) {
+      var h = fn(true, 0);
+      if (!dry) { roundRect(ctx, PAD, y, INNER, h + SP * 2, 28, color); fn(false, y + SP); }
+      y += h + SP * 2 + GAP;
+    }
+    var X = PAD + SP, IW = INNER - SP * 2;
+
+    if (!dry) { ctx.fillStyle = 'hsl(' + hue + ',85%,90%)'; ctx.fillRect(0, 0, W, totalH); }
+
+    // 見出し(動物)
+    y = 40;
+    y += text(false, PAD, y, INNER, 34, 'あなたは', { align: 'center' });
+    if (!dry) {
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = MID; ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.arc(W / 2, y + 160, 150, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '190px ' + EMOJI; ctx.fillText(type.emoji, W / 2, y + 170);
+    }
+    y += 340;
+    if (!dry) {
+      ctx.fillStyle = DEEP; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.font = font(96, true); ctx.fillText(type.name, W / 2, y + 80);
+      ctx.fillStyle = INK; ctx.globalAlpha = .6; ctx.font = font(28); ctx.fillText(type.code, W / 2, y + 125);
+      ctx.globalAlpha = 1;
+    }
+    y += 150;
+    y += text(false, PAD + 20, y, INNER - 40, 38, type.summary, { align: 'center' });
+    if (R.balanced) {
+      y += text(false, PAD + 20, y, INNER - 40, 30, '5つの軸(じく)が、ぜんぶ真(ま)ん中(なか)あたり。バランスがたです。', { align: 'center' });
+    }
+    if (R.sub >= 0) {
+      var st = D.types[R.sub];
+      y += text(false, PAD + 10, y, INNER - 20, 27, '「' + type.name + '」にちかいけれど、「' + st.emoji + st.name + '」のようそもあるよ。', { align: 'center' });
+    }
+    y += GAP;
+
+    // 5つの軸
+    section('#fff', function (measure, top) {
+      var yy = top;
+      yy += text(measure, X, yy, IW, 40, '5つの軸(じく)', { bold: true });
+      D.axes.forEach(function (ax, a) {
+        var hi = Math.round((scores[a] - 4) * 100 / 16), lo = 100 - hi;
+        yy += 8;
+        yy += text(measure, X, yy, IW, 30, ax.label, { bold: true });
+        text(measure, X, yy, IW / 2, 28, D.poles[a][0] + ' ' + lo + '%');
+        yy += text(measure, X + IW / 2, yy, IW / 2, 28, D.poles[a][1] + ' ' + hi + '%', { align: 'right' });
+        if (!measure && !dry) {
+          roundRect(ctx, X, yy, IW, 22, 11, '#8cc3c3');
+          if (hi > 0) {
+            ctx.save(); ctx.beginPath(); ctx.rect(X + IW * lo / 100, yy, IW, 22); ctx.clip();
+            roundRect(ctx, X, yy, IW, 22, 11, '#177a7a'); ctx.restore();
+          }
+        }
+        yy += 22 + 14;
+      });
+      return yy - top;
+    });
+
+    // つよみ
+    section('#dff3e6', function (measure, top) {
+      var yy = top;
+      yy += text(measure, X, yy, IW, 38, 'あなたのつよみ', { bold: true });
+      R.strengths.forEach(function (s) { yy += text(measure, X, yy, IW, 32, '・' + s); });
+      return yy - top;
+    });
+
+    // 気をつけること
+    section('#fff1cf', function (measure, top) {
+      var yy = top;
+      yy += text(measure, X, yy, IW, 36, 'ちょっと気(き)をつけると、もっと楽(らく)になること', { bold: true });
+      R.weaknesses.forEach(function (s) { yy += text(measure, X, yy, IW, 32, '・' + s); });
+      return yy - top;
+    });
+
+    function facts(title, items) {
+      section('#fff', function (measure, top) {
+        var yy = top;
+        yy += text(measure, X, yy, IW, 38, title, { bold: true });
+        items.forEach(function (it) {
+          yy += 6;
+          yy += text(measure, X, yy, IW, 28, it[0], { bold: true, color: DEEP });
+          yy += text(measure, X, yy, IW, 32, it[1]);
+        });
+        return yy - top;
+      });
+    }
+    facts('学校(がっこう)でのすがた', [
+      ['ふだんの様子(ようす)', type.school],
+      ['むいている係(かかり)・部活(ぶかつ)', type.fit],
+      ['ラッキーアイテム', type.lucky]]);
+    facts('ふだんのくらしでのすがた', [
+      ['休日(きゅうじつ)の過(す)ごし方(かた)', type.holiday],
+      ['向(む)いているお仕事(しごと)', type.job],
+      ['口(くち)ぐせ', type.phrase],
+      ['元気(げんき)が出(で)る方法(ほうほう)', type.recharge]]);
+
+    // 相性
+    section('#fff', function (measure, top) {
+      var yy = top;
+      yy += text(measure, X, yy, IW, 38, '相性(あいしょう)', { bold: true });
+      D.compat.forEach(function (c) {
+        var o = R.main ^ c.flip, ot = D.types[o], oh = (o * 137) % 360;
+        yy += 10;
+        var textX = X + 110, textW = IW - 110 - 16;
+        var reasonH = text(true, textX, 0, textW, 28, c.reason);
+        var rowH = Math.max(120, 16 + 58 + reasonH + 12);
+        if (!measure && !dry) {
+          roundRect(ctx, X, yy, IW, rowH, 22, 'hsl(' + oh + ',85%,94%)');
+          ctx.fillStyle = '#fff'; ctx.strokeStyle = 'hsl(' + oh + ',55%,45%)'; ctx.lineWidth = 5;
+          ctx.beginPath(); ctx.arc(X + 56, yy + rowH / 2, 40, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.font = '44px ' + EMOJI; ctx.fillText(ot.emoji, X + 56, yy + rowH / 2 + 4);
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = INK;
+          ctx.font = font(34, true); ctx.fillText(ot.name, textX, yy + 16 + 40);
+          var nw = ctx.measureText(ot.name).width;
+          var lab = layout(ctx, c.label, 26, textW - nw - 14, true);
+          drawLines(ctx, lab, textX + nw + 14, yy + 16 + 40 - 26 * 1.5, 26, 'left', textW - nw - 14, INK, true);
+          text(false, textX, yy + 16 + 58, textW, 28, c.reason);
+        }
+        yy += rowH;
+      });
+      return yy - top;
+    });
+
+    // 注意書き
+    y += text(false, PAD, y, INNER, 30, 'どうぶつ性格(せいかく)チェック', { align: 'center', color: 'rgba(29,54,56,.7)' });
+    y += text(false, PAD + 20, y, INNER - 40, 26,
+      'この診断(しんだん)はAI(Claude)が作(つく)ったもので、確実(かくじつ)に正(ただ)しいとは言(い)えません。けっかは、そのときの気分(きぶん)でもかわります。',
+      { align: 'center', color: 'rgba(29,54,56,.7)' });
+    return y + 30;
+  }
+
+  var c = document.getElementById('card');
+  var H = Math.ceil(render(document.createElement('canvas').getContext('2d'), true, 0));
+  c.width = W; c.height = H;
+  render(c.getContext('2d'), false, H);
 
   c.toBlob(function (blob) {
     var url = URL.createObjectURL(blob);
