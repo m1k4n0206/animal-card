@@ -154,9 +154,10 @@
     }
     var X = PAD + SP, IW = INNER - SP * 2;
 
-    if (!dry) { ctx.fillStyle = 'hsl(' + hue + ',85%,90%)'; ctx.fillRect(0, 0, W, totalH); }
+    if (!dry) { ctx.fillStyle = 'hsl(' + hue + ',85%,90%)'; ctx.fillRect(0, 0, W * 2, totalH); }
 
-    // 見出し(動物)
+    // ---- 左の列: 動物・5つの軸・つよみ・気をつけること ----
+    ctx.save();
     y = 40;
     y += text(false, PAD, y, INNER, 34, 'あなたは', { align: 'center' });
     if (!dry) {
@@ -221,6 +222,13 @@
       return yy - top;
     });
 
+    var leftEnd = y;
+    ctx.restore();
+
+    // ---- 右の列: 学校・ふだんのくらし・相性 ----
+    ctx.save();
+    ctx.translate(W, 0);
+    y = 40;
     function facts(title, items) {
       section('#fff', function (measure, top) {
         var yy = top;
@@ -271,9 +279,14 @@
       return yy - top;
     });
 
-    // 注意書き
-    y += text(false, PAD, y, INNER, 30, 'どうぶつ性格(せいかく)チェック', { align: 'center', color: 'rgba(29,54,56,.7)' });
-    y += text(false, PAD + 20, y, INNER - 40, 26,
+    var rightEnd = y;
+    ctx.restore();
+
+    // 注意書き(下に、左右をまたいで)
+    y = Math.max(leftEnd, rightEnd);
+    var FW = W * 2 - PAD * 2;
+    y += text(false, PAD, y, FW, 30, 'どうぶつ性格(せいかく)チェック', { align: 'center', color: 'rgba(29,54,56,.7)' });
+    y += text(false, PAD + 20, y, FW - 40, 26,
       'この診断(しんだん)はAI(Claude)が作(つく)ったもので、確実(かくじつ)に正(ただ)しいとは言(い)えません。けっかは、そのときの気分(きぶん)でもかわります。',
       { align: 'center', color: 'rgba(29,54,56,.7)' });
     return y + 30;
@@ -281,7 +294,7 @@
 
   var c = document.getElementById('card');
   var H = Math.ceil(render(document.createElement('canvas').getContext('2d'), true, 0));
-  c.width = W; c.height = H;
+  c.width = W * 2; c.height = H;
   render(c.getContext('2d'), false, H);
 
   c.toBlob(function (blob) {
