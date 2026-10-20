@@ -139,8 +139,8 @@
   }
 
   // ---- カード全体を描く。dry=true のときは、高さを測るだけ ----
-  function render(ctx, dry, totalH) {
-    var y = 0;
+  function render(ctx, dry, totalH, extraL, extraR) {
+    var y = 0, secExtra = 0;
     function text(measure, x, yy, w, fs, t, o) {
       o = o || {};
       var ls = layout(ctx, t, fs, w, o.bold);
@@ -148,9 +148,9 @@
       return ls.length * fs * 2.0;
     }
     function section(color, fn) {
-      var h = fn(true, 0);
-      if (!dry) { roundRect(ctx, PAD, y, INNER, h + SP * 2, 28, color); fn(false, y + SP); }
-      y += h + SP * 2 + GAP;
+      var h = fn(true, 0), e = secExtra;   // e: 左右の高さをそろえるための、足す余白
+      if (!dry) { roundRect(ctx, PAD, y, INNER, h + SP * 2 + e, 28, color); fn(false, y + SP + e / 2); }
+      y += h + SP * 2 + e + GAP;
     }
     var X = PAD + SP, IW = INNER - SP * 2;
 
@@ -159,6 +159,7 @@
     // ---- 左の列: 動物・5つの軸・つよみ・気をつけること ----
     ctx.save();
     y = 40;
+    secExtra = (extraL || 0) / 3;   // 左の列のパネルは3つ
     y += text(false, PAD, y, INNER, 34, 'あなたは', { align: 'center' });
     if (!dry) {
       ctx.fillStyle = '#fff'; ctx.strokeStyle = MID; ctx.lineWidth = 12;
@@ -229,6 +230,7 @@
     ctx.save();
     ctx.translate(W, 0);
     y = 40;
+    secExtra = (extraR || 0) / 3;   // 右の列のパネルも3つ
     function facts(title, items) {
       section('#fff', function (measure, top) {
         var yy = top;
@@ -289,13 +291,15 @@
     y += text(false, PAD + 20, y, FW - 40, 26,
       'この診断(しんだん)はAI(Claude)が作(つく)ったもので、確実(かくじつ)に正(ただ)しいとは言(い)えません。けっかは、そのときの気分(きぶん)でもかわります。',
       { align: 'center', color: 'rgba(29,54,56,.7)' });
-    return y + 30;
+    return { l: leftEnd, r: rightEnd, h: y + 30 };
   }
 
   var c = document.getElementById('card');
-  var H = Math.ceil(render(document.createElement('canvas').getContext('2d'), true, 0));
+  // 1回目は高さを測るだけ。短いほうの列に余白を足して、左右の下の端をそろえる。
+  var m = render(document.createElement('canvas').getContext('2d'), true, 0, 0, 0);
+  var H = Math.ceil(m.h);
   c.width = W * 2; c.height = H;
-  render(c.getContext('2d'), false, H);
+  render(c.getContext('2d'), false, H, Math.max(0, m.r - m.l), Math.max(0, m.l - m.r));
 
   c.toBlob(function (blob) {
     var url = URL.createObjectURL(blob);
