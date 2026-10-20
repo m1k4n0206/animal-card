@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>どうぶつ性格チェック | 結果カード</title>
+  <style>
+    :root { --bg:#eaf4f2; --ink:#1d3638; --accent:#177a7a; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); text-align:center;
+           font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif;
+           font-size:18px; line-height:1.9; }
+    main { max-width:640px; margin:0 auto; padding:24px 16px 48px; }
+    h1 { font-size:1.8rem; line-height:1.5; margin:.5em 0; }
+    rt { font-size:.55em; }
+    .note { font-size:.95rem; opacity:.85; }
+    .card-img { display:block; width:100%; max-width:360px; height:auto; margin:12px auto; border-radius:16px; }
+    .btn { display:block; max-width:360px; margin:12px auto; padding:14px 8px; border-radius:999px;
+           background:var(--accent); color:#fff; font:inherit; font-weight:700; text-decoration:none; }
+    .btn:hover { background:#0f5757; }
+    [hidden] { display:none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <h1><ruby>結果<rt>けっか</rt></ruby>のカード</h1>
+  <img id="card-img" class="card-img" alt="結果の画像カード" width="800" height="1000" hidden>
+  <canvas id="card" width="800" height="1000" hidden></canvas>
+  <p id="msg" class="note">つくっているよ…</p>
+  <a id="save" class="btn" download="animal-card.png" hidden><ruby>画像<rt>がぞう</rt></ruby>を<ruby>保存<rt>ほぞん</rt></ruby></a>
+  <p id="tip" class="note" hidden>うまく<ruby>保存<rt>ほぞん</rt></ruby>できないときは、<ruby>画像<rt>がぞう</rt></ruby>を<ruby>長<rt>なが</rt></ruby>おししてね。</p>
+</main>
+<script>
+(function () {
+  // 動物のデータ(番号 0〜31)。画像カードに必要なものだけ。
+  var TYPES = [{"code": "LLLLL", "name": "ナマケモノ", "emoji": "🦥", "summary": "なにごとも我が道をゆく、省エネタイプ", "hue": 0}, {"code": "LLLLH", "name": "カタツムリ", "emoji": "🐌", "summary": "自分のからを大切にする、繊細さん", "hue": 137}, {"code": "LLLHL", "name": "パンダ", "emoji": "🐼", "summary": "マイペースで、みんなに愛されるタイプ", "hue": 274}, {"code": "LLLHH", "name": "リス", "emoji": "🐿️", "summary": "おとなしくて、やさしい心配性", "hue": 51}, {"code": "LLHLL", "name": "サル", "emoji": "🐒", "summary": "ノリがよくて、陽気なムードメーカー", "hue": 188}, {"code": "LLHLH", "name": "スズメ", "emoji": "🐦", "summary": "にぎやかで、気分が変わりやすい", "hue": 325}, {"code": "LLHHL", "name": "カピバラ", "emoji": "🐹", "summary": "のんびり明るくて、みんなのいやし役", "hue": 102}, {"code": "LLHHH", "name": "ヒツジ", "emoji": "🐑", "summary": "なかまといると安心する、やさしいさびしがり屋", "hue": 239}, {"code": "LHLLL", "name": "ビーバー", "emoji": "🦫", "summary": "もくもくと仕事をこなす、職人タイプ", "hue": 16}, {"code": "LHLLH", "name": "アリ", "emoji": "🐜", "summary": "きちょうめんで、じゅんびを大切にする", "hue": 153}, {"code": "LHLHL", "name": "ゾウ", "emoji": "🐘", "summary": "どっしりおだやかな、やさしい守り手", "hue": 290}, {"code": "LHLHH", "name": "カメ", "emoji": "🐢", "summary": "コツコツ進む、しんちょうな気くばり屋", "hue": 67}, {"code": "LHHLL", "name": "ライオン", "emoji": "🦁", "summary": "しっかり者で、堂々としたリーダー", "hue": 204}, {"code": "LHHLH", "name": "ドーベルマン", "emoji": "🐕", "summary": "責任感が強くて、いつも気をはっている", "hue": 341}, {"code": "LHHHL", "name": "イヌ", "emoji": "🐶", "summary": "まじめで世話好き、みんなにしたわれる", "hue": 118}, {"code": "LHHHH", "name": "ペンギン", "emoji": "🐧", "summary": "なかまと力を合わせる、まじめながんばり屋", "hue": 255}, {"code": "HLLLL", "name": "カラス", "emoji": "🐦‍⬛", "summary": "好奇心いっぱいで、クールなひとりが好き", "hue": 32}, {"code": "HLLLH", "name": "コウモリ", "emoji": "🦇", "summary": "自分だけの世界をもつ、夜型の感性派", "hue": 169}, {"code": "HLLHL", "name": "ネコ", "emoji": "🐱", "summary": "自由気ままだけど、じつはやさしい", "hue": 306}, {"code": "HLLHH", "name": "クラゲ", "emoji": "🪼", "summary": "ふわふわただよう、感性ゆたかなタイプ", "hue": 83}, {"code": "HLHLL", "name": "チーター", "emoji": "🐆", "summary": "思いたったらすぐ動く、マイペースなスピードスター", "hue": 220}, {"code": "HLHLH", "name": "クジャク", "emoji": "🦚", "summary": "目立つのが好きで、美しいものが大好き", "hue": 357}, {"code": "HLHHL", "name": "オウム", "emoji": "🦜", "summary": "自由でおしゃべり好きな人気者", "hue": 134}, {"code": "HLHHH", "name": "ラッコ", "emoji": "🦦", "summary": "なかま思いで、気持ちをゆたかに感じる", "hue": 271}, {"code": "HHLLL", "name": "キツネ", "emoji": "🦊", "summary": "冷静で、かしこい作戦の名人", "hue": 48}, {"code": "HHLLH", "name": "ハリネズミ", "emoji": "🦔", "summary": "こだわりが強くて、心をまもるのも上手", "hue": 185}, {"code": "HHLHL", "name": "フクロウ", "emoji": "🦉", "summary": "物知りで、おだやかな相談あいて", "hue": 322}, {"code": "HHLHH", "name": "ウサギ", "emoji": "🐰", "summary": "しんちょうで、やさしい気くばり上手", "hue": 99}, {"code": "HHHLL", "name": "ワシ", "emoji": "🦅", "summary": "目標に向かってまっすぐ進む、たのもしいリーダー", "hue": 236}, {"code": "HHHLH", "name": "オオカミ", "emoji": "🐺", "summary": "大きな夢をめざして進む、感じやすい心の持ち主", "hue": 13}, {"code": "HHHHL", "name": "イルカ", "emoji": "🐬", "summary": "好奇心も、計画も、人づきあいも上手なバランス名人", "hue": 150}, {"code": "HHHHH", "name": "ミツバチ", "emoji": "🐝", "summary": "なんでも全力でがんばる、心やさしい努力家", "hue": 287}];
+
+  var no = parseInt(new URLSearchParams(location.search).get('no'), 10);
+  var msg = document.getElementById('msg');
+  if (!(no >= 0 && no < TYPES.length)) { msg.textContent = 'カードが見つからないよ。もういちど QR を読みとってね。'; return; }
+
+  var d = TYPES[no], h = d.hue;
+  var c = document.getElementById('card'), ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  var EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  var TEXT = '"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif';
+
+  function wrap(text, x, y, maxW, lineH) {
+    var line = '';
+    Array.from(text).forEach(function (ch) {
+      if (line && ctx.measureText(line + ch).width > maxW) { ctx.fillText(line, x, y); line = ch; y += lineH; }
+      else { line += ch; }
+    });
+    ctx.fillText(line, x, y);
+  }
+
+  ctx.fillStyle = 'hsl(' + h + ',85%,90%)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(40, 40, W - 80, H - 80, 40); } else { ctx.rect(40, 40, W - 80, H - 80); }
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#1d3638';
+  ctx.font = '36px ' + TEXT;
+  ctx.fillText('あなたは', W / 2, 130);
+
+  ctx.fillStyle = 'hsl(' + h + ',85%,90%)';
+  ctx.strokeStyle = 'hsl(' + h + ',60%,48%)';
+  ctx.lineWidth = 12;
+  ctx.beginPath(); ctx.arc(W / 2, 330, 150, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#000';
+  ctx.font = '190px ' + EMOJI;
+  ctx.fillText(d.emoji, W / 2, 340);
+
+  ctx.fillStyle = 'hsl(' + h + ',55%,28%)';
+  ctx.font = 'bold 92px ' + TEXT;
+  ctx.fillText(d.name, W / 2, 590);
+  ctx.fillStyle = '#1d3638';
+  ctx.globalAlpha = .6;
+  ctx.font = '28px ' + TEXT;
+  ctx.fillText(d.code, W / 2, 660);
+  ctx.globalAlpha = 1;
+
+  ctx.font = '40px ' + TEXT;
+  wrap(d.summary, W / 2, 740, 620, 62);
+
+  ctx.globalAlpha = .7;
+  ctx.font = '28px ' + TEXT;
+  ctx.fillText('どうぶつ性格チェック', W / 2, 875);
+  ctx.font = '24px ' + TEXT;
+  ctx.fillText('AIがつくった、たのしむためのチェックだよ', W / 2, 920);
+  ctx.globalAlpha = 1;
+
+  c.toBlob(function (blob) {
+    var url = URL.createObjectURL(blob);
+    var img = document.getElementById('card-img'), a = document.getElementById('save');
+    img.src = url; img.hidden = false;
+    a.href = url; a.hidden = false;
+    document.getElementById('tip').hidden = false;
+    msg.hidden = true;
+  }, 'image/png');
+})();
+</script>
+</body>
+</html>
